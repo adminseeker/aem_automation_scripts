@@ -58,15 +58,6 @@ def create_package(auth=(),host="",port="",packageName="",groupName="my_packages
     print(str(response.status_code)+" "+ str(response.json()))
     print("[+] Package Created")
 
-# def create_remote_package(packageName="",groupName="my_packages",packageVersion=""):
-#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-#     path="service/exec.json?cmd=create"
-#     endpoint=url+path
-#     data = {'packageName':packageName,'groupName':groupName,'packageVersion':packageVersion}
-#     response = requests.post(endpoint, auth=remoteAuth, headers=headers,data=data)
-#     print(str(response.status_code)+" "+ str(response.json()))
-#     print("[+] Package Created")
-
 def add_filters(auth=(),host="",port="",packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     url="http://"+host+":"+port+"/crx/packmgr/"
@@ -81,20 +72,6 @@ def add_filters(auth=(),host="",port="",packageName="",packageVersion="",groupNa
     response = requests.post(endpoint,headers=headers,auth=auth,files=multipartify(data))
     print(str(response.status_code)+" "+ str(response.json()))
     print("[+] Filters Added")
-
-# def add_remote_filters(packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
-#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-#     endpoint=url+"update.jsp"
-#     path=""
-#     fullPackageName=packageName
-#     if(packageVersion!=""):
-#         fullPackageName=fullPackageName+"-"+packageVersion
-#     filters=get_filters_from_file(filters_file_path)
-#     path="/etc/packages/my_packages/"+fullPackageName+".zip"
-#     data={"path":path,"packageName":packageName,"groupName":groupName,"version":packageVersion,"description":description,"filter":filters}
-#     response = requests.post(endpoint,headers=headers,auth=remoteAuth,files=multipartify(data))
-#     print(str(response.status_code)+" "+ str(response.json()))
-#     print("[+] Filters Added")
 
 def handle_package(auth=(),host="",port="",packageName="",packageVersion="",action=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -129,16 +106,6 @@ def list_packages(auth=(),host="",port="",query=""):
         print(i['downloadName'])
     print("[+] Package List Successfull")
 
-# def list_remote_packages(query=""):
-#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-#     path='list.jsp?includeVersions=true&q='+query
-#     endpoint=url+path
-#     response = requests.post(endpoint,headers=headers,auth=remoteAuth)
-#     results=response.json()['results']
-#     for i in results:
-#         print(i['downloadName'])
-#     print("[+] Package List Successfull")
-
 def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     url="http://"+host+":"+port+"/crx/packmgr/"
@@ -152,20 +119,6 @@ def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
     for i in results:
         print(i['root'])
     print("[+] Filters List Successfull")
-
-# def list_remote_filters(packageName="",packageVersion=""):
-#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-#     fullPackageName=packageName
-#     if(packageVersion!=""):
-#         fullPackageName=fullPackageName+"-"+packageVersion
-#     path='list.jsp?includeVersions=false&q='+fullPackageName+".zip"
-#     endpoint=url+path
-#     response = requests.get(endpoint,auth=remoteAuth,headers=headers)
-#     results=response.json()['results'][0]['filter']
-#     for i in results:
-#         print(i['root'])
-#     print("[+] Filters List Successfull")
-
 
 def upload_package(auth=(),host="",port="",file_path=None,install="false",force="true"):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -181,26 +134,6 @@ def upload_package(auth=(),host="",port="",file_path=None,install="false",force=
     data={"force":force,"install":install}
     response = requests.post(endpoint,headers=headers,auth=auth,data=data,files=files)
     print("[+] Package Uploaded")
-
-# def handle_remote_package(packageName="",packageVersion="",action=""):
-#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-#     fullPackageName=packageName
-#     if(packageVersion!=""):
-#         fullPackageName=fullPackageName+"-"+packageVersion
-#     path='service/.json/etc/packages/my_packages/'+fullPackageName+'.zip?cmd='+action
-#     endpoint=url+path
-#     response = requests.post(endpoint,headers=headers,auth=remoteAuth)
-#     print(str(response.status_code)+" "+ str(response.json()))
-#     print("[+] Package "+action+" Successfull")
-
-# def download_remote_package(packageName="",packageVersion=""):
-#     fullPackageName=packageName
-#     if(packageVersion!=""):
-#         fullPackageName=fullPackageName+"-"+packageVersion
-#     endpoint="http://"+remoteHost+":"+remotePort+"/etc/packages/my_packages/"+fullPackageName+".zip"
-#     response = requests.get(endpoint,auth=remoteAuth,headers=headers)
-#     open(fullPackageName+".zip","wb").write(response.content)
-#     print("[+] Package Downloaded")
 
 def menu():
     return'''
