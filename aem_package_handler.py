@@ -7,9 +7,17 @@ host="localhost"
 port="4502"
 user="admin"
 password="admin"
+
+
+remoteHost="localhost"
+remotePort="4503"
+remoteUser="admin"
+remotePassword="admin"
+
 auth=(user,password)
+remoteAuth=(user,password)
+
 url = "http://"+host+":"+port+"/crx/packmgr/"
-headers = {'Referer': 'http://localhost:4502/crx/packmgr/index.jsp'}
 
 
 def multipartify(data):
@@ -40,7 +48,9 @@ def get_file_name(fileName=""):
         print("Error in File Name")
         return fileName
 
-def create_package(packageName="",groupName="my_packages",packageVersion=""):
+def create_package(auth=(),host="",port="",packageName="",groupName="my_packages",packageVersion=""):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
+    url="http://"+host+":"+port+"/crx/packmgr/"
     path="service/exec.json?cmd=create"
     endpoint=url+path
     data = {'packageName':packageName,'groupName':groupName,'packageVersion':packageVersion}
@@ -48,16 +58,18 @@ def create_package(packageName="",groupName="my_packages",packageVersion=""):
     print(str(response.status_code)+" "+ str(response.json()))
     print("[+] Package Created")
 
-def create_remote_package(remoteHost="",remotePort="",packageName="",groupName="my_packages",packageVersion=""):
-    url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-    path="service/exec.json?cmd=create"
-    endpoint=url+path
-    data = {'packageName':packageName,'groupName':groupName,'packageVersion':packageVersion}
-    response = requests.post(endpoint, auth=auth, headers=headers,data=data)
-    print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Package Created")
+# def create_remote_package(packageName="",groupName="my_packages",packageVersion=""):
+#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
+#     path="service/exec.json?cmd=create"
+#     endpoint=url+path
+#     data = {'packageName':packageName,'groupName':groupName,'packageVersion':packageVersion}
+#     response = requests.post(endpoint, auth=remoteAuth, headers=headers,data=data)
+#     print(str(response.status_code)+" "+ str(response.json()))
+#     print("[+] Package Created")
 
-def add_filters(packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
+def add_filters(auth=(),host="",port="",packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
+    url="http://"+host+":"+port+"/crx/packmgr/"
     endpoint=url+"update.jsp"
     path=""
     fullPackageName=packageName
@@ -70,21 +82,23 @@ def add_filters(packageName="",packageVersion="",groupName="my_packages",descrip
     print(str(response.status_code)+" "+ str(response.json()))
     print("[+] Filters Added")
 
-def add_remote_filters(remoteHost="",remotePort="",packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
-    url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-    endpoint=url+"update.jsp"
-    path=""
-    fullPackageName=packageName
-    if(packageVersion!=""):
-        fullPackageName=fullPackageName+"-"+packageVersion
-    filters=get_filters_from_file(filters_file_path)
-    path="/etc/packages/my_packages/"+fullPackageName+".zip"
-    data={"path":path,"packageName":packageName,"groupName":groupName,"version":packageVersion,"description":description,"filter":filters}
-    response = requests.post(endpoint,headers=headers,auth=auth,files=multipartify(data))
-    print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Filters Added")
+# def add_remote_filters(packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
+#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
+#     endpoint=url+"update.jsp"
+#     path=""
+#     fullPackageName=packageName
+#     if(packageVersion!=""):
+#         fullPackageName=fullPackageName+"-"+packageVersion
+#     filters=get_filters_from_file(filters_file_path)
+#     path="/etc/packages/my_packages/"+fullPackageName+".zip"
+#     data={"path":path,"packageName":packageName,"groupName":groupName,"version":packageVersion,"description":description,"filter":filters}
+#     response = requests.post(endpoint,headers=headers,auth=remoteAuth,files=multipartify(data))
+#     print(str(response.status_code)+" "+ str(response.json()))
+#     print("[+] Filters Added")
 
-def handle_package(packageName="",packageVersion="",action=""):
+def handle_package(auth=(),host="",port="",packageName="",packageVersion="",action=""):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
+    url="http://"+host+":"+port+"/crx/packmgr/"
     fullPackageName=packageName
     if(packageVersion!=""):
         fullPackageName=fullPackageName+"-"+packageVersion
@@ -94,7 +108,8 @@ def handle_package(packageName="",packageVersion="",action=""):
     print(str(response.status_code)+" "+ str(response.json()))
     print("[+] Package "+action+" Successfull")
 
-def download_package(packageName="",packageVersion=""):
+def download_package(auth=(),host="",port="",packageName="",packageVersion=""):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     fullPackageName=packageName
     if(packageVersion!=""):
         fullPackageName=fullPackageName+"-"+packageVersion
@@ -103,7 +118,9 @@ def download_package(packageName="",packageVersion=""):
     open(fullPackageName+".zip","wb").write(response.content)
     print("[+] Package Downloaded")
 
-def list_packages(query=""):
+def list_packages(auth=(),host="",port="",query=""):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
+    url="http://"+host+":"+port+"/crx/packmgr/"
     path='list.jsp?includeVersions=true&q='+query
     endpoint=url+path
     response = requests.post(endpoint,headers=headers,auth=auth)
@@ -112,17 +129,19 @@ def list_packages(query=""):
         print(i['downloadName'])
     print("[+] Package List Successfull")
 
-def list_remote_packages(remoteHost="",remotePort="",query=""):
-    url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-    path='list.jsp?includeVersions=true&q='+query
-    endpoint=url+path
-    response = requests.post(endpoint,headers=headers,auth=auth)
-    results=response.json()['results']
-    for i in results:
-        print(i['downloadName'])
-    print("[+] Package List Successfull")
+# def list_remote_packages(query=""):
+#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
+#     path='list.jsp?includeVersions=true&q='+query
+#     endpoint=url+path
+#     response = requests.post(endpoint,headers=headers,auth=remoteAuth)
+#     results=response.json()['results']
+#     for i in results:
+#         print(i['downloadName'])
+#     print("[+] Package List Successfull")
 
-def list_filters(packageName="",packageVersion=""):
+def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
+    url="http://"+host+":"+port+"/crx/packmgr/"
     fullPackageName=packageName
     if(packageVersion!=""):
         fullPackageName=fullPackageName+"-"+packageVersion
@@ -134,23 +153,24 @@ def list_filters(packageName="",packageVersion=""):
         print(i['root'])
     print("[+] Filters List Successfull")
 
-def list_remote_filters(remoteHost="",remotePort="",packageName="",packageVersion=""):
-    url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-    fullPackageName=packageName
-    if(packageVersion!=""):
-        fullPackageName=fullPackageName+"-"+packageVersion
-    path='list.jsp?includeVersions=false&q='+fullPackageName+".zip"
-    endpoint=url+path
-    response = requests.get(endpoint,auth=auth,headers=headers)
-    results=response.json()['results'][0]['filter']
-    for i in results:
-        print(i['root'])
-    print("[+] Filters List Successfull")
+# def list_remote_filters(packageName="",packageVersion=""):
+#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
+#     fullPackageName=packageName
+#     if(packageVersion!=""):
+#         fullPackageName=fullPackageName+"-"+packageVersion
+#     path='list.jsp?includeVersions=false&q='+fullPackageName+".zip"
+#     endpoint=url+path
+#     response = requests.get(endpoint,auth=remoteAuth,headers=headers)
+#     results=response.json()['results'][0]['filter']
+#     for i in results:
+#         print(i['root'])
+#     print("[+] Filters List Successfull")
 
 
-def upload_package(uploadHost="",uploadPort="",file_path=None,install="false",force="true"):
+def upload_package(auth=(),host="",port="",file_path=None,install="false",force="true"):
+    headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     path="crx/packmgr/service.jsp"
-    url="http://"+uploadHost+":"+uploadPort+"/"
+    url="http://"+host+":"+port+"/"
     endpoint=url+path
     fileName=file_path
     if len(fileName.split("/"))!=0:
@@ -162,25 +182,25 @@ def upload_package(uploadHost="",uploadPort="",file_path=None,install="false",fo
     response = requests.post(endpoint,headers=headers,auth=auth,data=data,files=files)
     print("[+] Package Uploaded")
 
-def handle_remote_package(remoteHost="",remotePort="",packageName="",packageVersion="",action=""):
-    url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
-    fullPackageName=packageName
-    if(packageVersion!=""):
-        fullPackageName=fullPackageName+"-"+packageVersion
-    path='service/.json/etc/packages/my_packages/'+fullPackageName+'.zip?cmd='+action
-    endpoint=url+path
-    response = requests.post(endpoint,headers=headers,auth=auth)
-    print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Package "+action+" Successfull")
+# def handle_remote_package(packageName="",packageVersion="",action=""):
+#     url="http://"+remoteHost+":"+remotePort+"/crx/packmgr/"
+#     fullPackageName=packageName
+#     if(packageVersion!=""):
+#         fullPackageName=fullPackageName+"-"+packageVersion
+#     path='service/.json/etc/packages/my_packages/'+fullPackageName+'.zip?cmd='+action
+#     endpoint=url+path
+#     response = requests.post(endpoint,headers=headers,auth=remoteAuth)
+#     print(str(response.status_code)+" "+ str(response.json()))
+#     print("[+] Package "+action+" Successfull")
 
-def download_remote_package(remoteHost="",remotePort="",packageName="",packageVersion=""):
-    fullPackageName=packageName
-    if(packageVersion!=""):
-        fullPackageName=fullPackageName+"-"+packageVersion
-    endpoint="http://"+remoteHost+":"+remotePort+"/etc/packages/my_packages/"+fullPackageName+".zip"
-    response = requests.get(endpoint,auth=auth,headers=headers)
-    open(fullPackageName+".zip","wb").write(response.content)
-    print("[+] Package Downloaded")
+# def download_remote_package(packageName="",packageVersion=""):
+#     fullPackageName=packageName
+#     if(packageVersion!=""):
+#         fullPackageName=fullPackageName+"-"+packageVersion
+#     endpoint="http://"+remoteHost+":"+remotePort+"/etc/packages/my_packages/"+fullPackageName+".zip"
+#     response = requests.get(endpoint,auth=remoteAuth,headers=headers)
+#     open(fullPackageName+".zip","wb").write(response.content)
+#     print("[+] Package Downloaded")
 
 def menu():
     return'''
@@ -217,10 +237,10 @@ def main():
         if choice=="20":
             break
         elif choice=="1":
-            list_packages()
+            list_packages(auth=auth,host=host,port=port)
         elif choice=="2":
             query=input("Search By Package Name: ")
-            list_packages(query=query)
+            list_packages(auth=auth,host=host,port=port,query=query)
         elif choice=="3":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -230,7 +250,7 @@ def main():
             if (groupName==""):
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
-            create_package(packageName=packageName,groupName=groupName,packageVersion=packageVersion)
+            create_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
         elif choice=="4":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -245,51 +265,43 @@ def main():
             if(filePath==""):
                 print("File Path required")
                 continue
-            add_filters(packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
+            add_filters(auth=auth,host=host,port=port,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
         elif choice=="5":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("package name required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            list_filters(packageName=packageName,packageVersion=packageVersion)
+            list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
         elif choice=="6":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_package(packageName=packageName,packageVersion=packageVersion,action="build")
+            handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="build")
         elif choice=="7":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_package(packageName=packageName,packageVersion=packageVersion,action="install")
+            handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="install")
         elif choice=="8":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_package(packageName=packageName,packageVersion=packageVersion,action="delete")
+            handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="delete")
         elif choice=="9":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            download_package(packageName=packageName,packageVersion=packageVersion)
+            download_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
         elif choice=="10":
-            uploadHost=input("Upload Hostname : ")
-            if(uploadHost==""):
-                print("HostName Required")
-                continue
-            uploadPort=input("Upload Port : ")
-            if(uploadPort==""):
-                print("Port Required")
-                continue
             force=input("force upload (default=true): ")
             if (force==""):
                 force="true"
@@ -300,52 +312,20 @@ def main():
             if(filePath==""):
                 print("File Path required")
                 continue
-            upload_package(uploadHost=uploadHost,uploadPort=uploadPort,file_path=filePath,install=install,force=force)
+            upload_package(auth=remoteAuth,host=remoteHost,port=remotePort,file_path=filePath,install=install,force=force)
         elif choice=="11":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
-            list_remote_packages(remoteHost=remoteHost,remotePort=remotePort)
+            list_packages(auth=remoteAuth,host=remoteHost,port=remotePort)
         elif choice=="12":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("package name required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            list_remote_filters(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,packageVersion=packageVersion)
+            list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
         elif choice=="13":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             query=input("Search By Package Name: ")
-            list_remote_packages(remoteHost=remoteHost,remotePort=remotePort,query=query)
+            list_packages(auth=remoteAuth,host=remoteHost,port=remotePort,query=query)
         elif choice=="14":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("package name required")
@@ -354,16 +334,8 @@ def main():
             if (groupName==""):
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
-            create_remote_package(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
+            create_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
         elif choice=="15":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -377,68 +349,36 @@ def main():
             if(filePath==""):
                 print("File Path required")
                 continue
-            add_remote_filters(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
+            add_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
         elif choice=="16":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_remote_package(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,packageVersion=packageVersion,action="build")
+            handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="build")
 
         elif choice=="17":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_remote_package(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,packageVersion=packageVersion,action="install")
+            handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="install")
         elif choice=="18":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            handle_remote_package(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,packageVersion=packageVersion,action="delete")
+            handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="delete")
         elif choice=="19":
-            remoteHost=input("Remote Hostname : ")
-            if(remoteHost==""):
-                print("HostName Required")
-                continue
-            remotePort=input("Remote Port : ")
-            if(remotePort==""):
-                print("Port Required")
-                continue
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            download_remote_package(remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,packageVersion=packageVersion)
+            download_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
         
         else:
             print("Incorrect Choice, Please Try Again!")
