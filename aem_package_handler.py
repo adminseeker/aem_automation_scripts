@@ -15,7 +15,7 @@ remoteUser="admin"
 remotePassword="admin"
 
 auth=(user,password)
-remoteAuth=(user,password)
+remoteAuth=(remoteUser,remotePassword)
 
 url = "http://"+host+":"+port+"/crx/packmgr/"
 
