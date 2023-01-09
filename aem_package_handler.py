@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import requests
 import json
-
+import time
 
 host="localhost"
 port="4502"
@@ -18,7 +18,6 @@ auth=(user,password)
 remoteAuth=(user,password)
 
 url = "http://"+host+":"+port+"/crx/packmgr/"
-
 
 def multipartify(data):
     return {key:(None,data[key]) for key in data}
@@ -56,7 +55,6 @@ def create_package(auth=(),host="",port="",packageName="",groupName="my_packages
     data = {'packageName':packageName,'groupName':groupName,'packageVersion':packageVersion}
     response = requests.post(endpoint, auth=auth, headers=headers,data=data)
     print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Package Created")
 
 def add_filters(auth=(),host="",port="",packageName="",packageVersion="",groupName="my_packages",description="",filters_file_path=None):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -71,7 +69,6 @@ def add_filters(auth=(),host="",port="",packageName="",packageVersion="",groupNa
     data={"path":path,"packageName":packageName,"groupName":groupName,"version":packageVersion,"description":description,"filter":filters}
     response = requests.post(endpoint,headers=headers,auth=auth,files=multipartify(data))
     print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Filters Added")
 
 def handle_package(auth=(),host="",port="",packageName="",packageVersion="",action=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -83,7 +80,6 @@ def handle_package(auth=(),host="",port="",packageName="",packageVersion="",acti
     endpoint=url+path
     response = requests.post(endpoint,headers=headers,auth=auth)
     print(str(response.status_code)+" "+ str(response.json()))
-    print("[+] Package "+action+" Successfull")
 
 def download_package(auth=(),host="",port="",packageName="",packageVersion=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -93,7 +89,6 @@ def download_package(auth=(),host="",port="",packageName="",packageVersion=""):
     endpoint="http://"+host+":"+port+"/etc/packages/my_packages/"+fullPackageName+".zip"
     response = requests.get(endpoint,auth=auth,headers=headers)
     open(fullPackageName+".zip","wb").write(response.content)
-    print("[+] Package Downloaded")
 
 def list_packages(auth=(),host="",port="",query=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -104,7 +99,6 @@ def list_packages(auth=(),host="",port="",query=""):
     results=response.json()['results']
     for i in results:
         print(i['downloadName'])
-    print("[+] Package List Successfull")
 
 def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -118,7 +112,6 @@ def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
     results=response.json()['results'][0]['filter']
     for i in results:
         print(i['root'])
-    print("[+] Filters List Successfull")
 
 def upload_package(auth=(),host="",port="",file_path=None,install="false",force="true"):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -133,10 +126,57 @@ def upload_package(auth=(),host="",port="",file_path=None,install="false",force=
     files={'file': (get_file_name(file_path),open(file_path,'rb'),'application/octet-stream')}
     data={"force":force,"install":install}
     response = requests.post(endpoint,headers=headers,auth=auth,data=data,files=files)
-    print("[+] Package Uploaded")
+
+def run_automation(auth=(),remoteAuth=(),host="",port="",remoteHost="",remotePort="",packageName="",groupName="",packageVersion="",packageDescription=""):
+    try:
+        f=open("filters.txt","r")
+        if len(f.readlines())==0:
+            print("No Filters Present in filters.txt")
+            raise Exception("No Filters Present in filters.txt")
+    except Exception:
+        print("Error with filters")
+        return
+    time.sleep(2)
+    print("Creating Package....")
+    create_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
+    print("--------------------------------------------------------------------------")
+    print("Adding Filters....")
+    time.sleep(2)
+    add_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,groupName=groupName,description=packageDescription,filters_file_path="filters.txt")   
+    print("--------------------------------------------------------------------------")
+    print("Listing Filters....")
+    time.sleep(2)
+    list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
+    print("--------------------------------------------------------------------------")
+    print("Building Package....")
+    time.sleep(2)
+    handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="build")
+    print("--------------------------------------------------------------------------")
+    print("Downloading Package....")
+    time.sleep(2)
+    download_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
+    print("--------------------------------------------------------------------------")
+    install=input("Upload And Install? (default: false) : ")
+    fullPackageName=packageName
+    if(packageVersion!=""):
+        fullPackageName=fullPackageName+"-"+packageVersion
+    fullPackageName=fullPackageName+".zip"   
+    print("Uploading And Installing Package....") if install=="true" else print("Uploading Package....")
+    time.sleep(2)
+    upload_package(auth=remoteAuth,host=remoteHost,port=remotePort,install=install,force="true",file_path=fullPackageName)
+    print("--------------------------------------------------------------------------")
+    print("Listing Remote Packages....")
+    time.sleep(2)
+    list_packages(auth=remoteAuth,host=remoteHost,port=remotePort,query=fullPackageName)
+    print("--------------------------------------------------------------------------")
+    print("Listing Remote Filters....")
+    time.sleep(2)
+    list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
+    print("--------------------------------------------------------------------------")
 
 def menu():
     return'''
+        0  - Automate
         1  - List All AEM Packages
         2  - Search AEM Package
         3  - Create New Package
@@ -164,11 +204,23 @@ def main():
         print(menu())
         choice=input("Enter Choice: ")
         print("selected Choice: "+choice)
-        if int(choice)<1 or int(choice) >20:
+        if int(choice)<0 or int(choice) >20:
             print("Incorrect Choice, Please Try Again!")
             continue
         if choice=="20":
             break
+        if choice=="0":
+            packageName=input("Package Name : ")
+            if(packageName==""):
+                print("Package Name Required")
+                continue
+            groupName=input("Group Name (default=my_packages): ")
+            if (groupName==""):
+                groupName="my_packages"
+            packageVersion=input("Version (default=blank): ")
+            packageDescription=input("Description (default=blank): ")
+            run_automation(auth=auth,remoteAuth=remoteAuth,host=host,port=port,remoteHost=remoteHost,remotePort=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion,packageDescription=packageDescription)
+            print("[+] Automation Successfull")
         elif choice=="1":
             list_packages(auth=auth,host=host,port=port)
         elif choice=="2":
@@ -184,6 +236,7 @@ def main():
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
             create_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
+            print("[+] Package Created")
         elif choice=="4":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -199,6 +252,7 @@ def main():
                 print("File Path required")
                 continue
             add_filters(auth=auth,host=host,port=port,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
+            print("[+] Filters Created")
         elif choice=="5":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -213,6 +267,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="build")
+            print("[+] Build Successfull")            
         elif choice=="7":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -220,6 +275,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="install")
+            print("[+] Install Successfull")               
         elif choice=="8":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -227,6 +283,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,action="delete")
+            print("[+] Delete Successfull")            
         elif choice=="9":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -234,6 +291,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             download_package(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
+            print("[+] Download Successfull") 
         elif choice=="10":
             force=input("force upload (default=true): ")
             if (force==""):
@@ -246,6 +304,7 @@ def main():
                 print("File Path required")
                 continue
             upload_package(auth=remoteAuth,host=remoteHost,port=remotePort,file_path=filePath,install=install,force=force)
+            print("[+] Upload Successfull") 
         elif choice=="11":
             list_packages(auth=remoteAuth,host=remoteHost,port=remotePort)
         elif choice=="12":
@@ -268,6 +327,7 @@ def main():
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
             create_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
+            print("[+] Package Created") 
         elif choice=="15":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -283,6 +343,7 @@ def main():
                 print("File Path required")
                 continue
             add_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
+            print("[+] Filters Added") 
         elif choice=="16":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -290,7 +351,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="build")
-
+            print("[+] Build Successfull") 
         elif choice=="17":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -298,6 +359,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="install")
+            print("[+] Install Successfull") 
         elif choice=="18":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -305,6 +367,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,action="delete")
+            print("[+] Delete Successfull") 
         elif choice=="19":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -312,7 +375,7 @@ def main():
                 continue
             packageVersion=input("Version (default=blank): ")
             download_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
-        
+            print("[+] Download Successfull") 
         else:
             print("Incorrect Choice, Please Try Again!")
             continue
