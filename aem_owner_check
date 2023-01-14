@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+checkOwner () {
+    local array=()
+    local i=0
+    for path in `find $1 -not -group 'aem' -or -not -user 'aem'`
+    do
+        array[$i]="$path"
+        i=$i+1
+    done
+    len=${#array[*]}
+    if [ $len -ne 0 ]
+    then
+        local toView="no"
+        read -p "Non aem owner Files Count for location ($1) : $len, Do you want to view the files? (yes/no) (default: no): " toView
+        if [ "$toView" = "yes" ]
+        then
+            for file in "${array[@]}"; do
+                echo "$file"
+            done
+        fi
+        echo "--------------------------------------------------------------------------------------------------------------------" 
+        local toFix="no"
+        read -p "Fix ownership (for location ($1/crx-quickstart)) back to aem? (yes/no) (default: no): " toFix
+        if [ "$toFix" = "yes" ]
+        then
+            if [ "$(id -u)" -ne 0 ]
+            then
+                echo "[!] Please run as super user to apply Fix"
+                exit 1
+            fi
+            if chown -R aem:aem "$1/crx-quickstart"
+            then
+                echo "[+] Fix Applied for location ($1)"
+                toRestart="no"
+                read -p "Restart of aem server ($1) Recommended! Restart ($1) (yes/no)? (default:no): " toRestart
+                if [ $toRestart = "yes" ]
+                then
+                    if su - aem -c "$1/crx-quickstart/bin/stop" 
+                    then
+                        echo "stopping ($1)..."
+                        sleep 30
+                    fi
+                    if su - aem -c "$1/crx-quickstart/bin/start"
+                    then
+                       echo "starting ($1)..."
+                        sleep 60 
+                    fi
+                    echo "[+] aem ($1) server restarted"
+                else 
+                    echo "[!] Auto restart of ($1) stopped by user. Please restart ($1) manually for the fix to work"
+                fi  
+
+            else
+                echo "[-] Fix Failed for location ($1)"
+            fi
+        else
+            echo "[-] Fix cancelled by user for location ($1)"
+        fi
+    else
+        echo "[+] No non aem owner files found for location ($1)!"
+    fi
+
+}
+
+aemPath=""
+
+if [ "$1" = "" ]
+then
+    read -p "Please Enter AEM Path ex:(/opt/aem): " aemPath
+else
+    aemPath="$1"
+fi
+
+isAuthor=false
+isPublish=false
+
+
+if [ -d "${aemPath}/author" ]
+then
+    isAuthor=true
+fi
+
+if [ -d "${aemPath}/publish" ]
+then
+    isPublish=true
+fi
+
+toCheck=0
+
+if $isAuthor -a $isPublish
+then
+    echo "Both Author and Publish Found"
+    echo "0: Author"
+    echo "1: Publish"
+    echo "2: Both"
+    read -p "To Check: " toCheck
+elif  $isAuthor
+then
+    echo "Author found"
+    toCheck=0
+elif $isPublish 
+then
+    toCheck=1
+    echo "Publish found"
+else
+    echo "!No Author or Publish Found. Try again with the correct path"
+fi
+
+if [ $toCheck -ne 2 ]
+then
+    if [ $toCheck -eq 0 ]
+    then
+        checkOwner "${aemPath}/author"
+    elif [ $toCheck -eq 1 ]
+    then
+        checkOwner "${aemPath}/publish"
+    else
+        echo "[!] Incorrect Choice"
+        exit 1
+    fi
+else
+    checkOwner "${aemPath}/author"
+    checkOwner "${aemPath}/publish"
+fi
