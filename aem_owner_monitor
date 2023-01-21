@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+
+mailconfigPath="mail.config"
+mailPath="mails.txt"
+aemPath="/opt/aem"
+autofix=true
+stoptime=30
+starttime=60
+
+if [ "$(id -u)" -ne 0 ]
+then
+    echo "[!] Please run as super user"
+    exit 1
+fi
+
+config=()
+readarray -t config < $mailconfigPath
+
+mails=()
+readarray -t mails < $mailPath
+
+isAuthor=false
+isPublish=false
+
+
+if [ -d "${aemPath}/author" ]
+then
+    isAuthor=true
+fi
+
+if [ -d "${aemPath}/publish" ]
+then
+    isPublish=true
+fi
+
+toCheck=0
+
+sendmail (){
+  sender=${config[0]}
+  pass=${config[1]}
+  rcpt=""
+  to=""
+  hostname=`hostname`
+  subject="AEM Owner Change Alert"
+  contentType="Content-Type: text/html; charset=utf-8"
+  body=""
+  if $3
+  then
+    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Fix deployed. Autofix is enabled</strong></p>\n"
+  else
+    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Please take required action. Autofix is disabled</strong></p>\n"
+  fi
+  for mail in "${mails[@]}"
+  do
+      mailrcpt="--mail-rcpt "
+      rcpt+="$mailrcpt $mail "
+      to+="$mail,"
+  done
+  
+  mailcmd=`curl -s --url 'smtps://smtp.gmail.com:465' --ssl-reqd --mail-from $sender  $rcpt --user $sender:$pass -T <(echo -e "From: $sender\nTo: $to\nSubject: $subject\n$contentType\n$body")`
+  echo "[+] e-mail sent"
+}
+
+checkOwner () {
+    Fix=0
+    local array=()
+    local i=0
+    for path in `find $1 -not -group 'aem' -or -not -user 'aem'`
+    do
+        array[$i]="$path"
+        i=$i+1
+    done
+    len=${#array[*]}
+    if [ $len -ne 0 ]
+    then
+        echo "Non aem owner Files Count for location ($1) : $len"
+        echo "--------------------------------------------------------------------------------------------------------------------" 
+        if $autofix
+        then
+            if chown -R aem:aem "$1/crx-quickstart"
+            then
+                echo "[+] Fix Applied for location ($1)"
+                
+                if su - aem -c "$1/crx-quickstart/bin/stop" 
+                then
+                    echo "stopping ($1)..."
+                    sleep $stoptime
+                fi
+                if su - aem -c "$1/crx-quickstart/bin/start"
+                then
+                    echo "starting ($1)..."
+                    sleep $starttime 
+                fi
+                echo "[+] aem ($1) server restarted"
+               
+
+            else
+                echo "[-] Fix Failed for location ($1)"
+            fi
+        else
+            echo "[!] Autofix disabled"
+        fi
+        Fix=1
+    else
+        echo "[+] No non aem owner files found for location ($1)!"
+        Fix=0
+    fi
+    return $Fix
+}
+
+
+
+if $isAuthor -a $isPublish
+then
+    echo "Both Author and Publish Found"
+    toCheck=2
+elif  $isAuthor
+then
+    echo "Author found"
+    toCheck=0
+elif $isPublish 
+then
+    toCheck=1
+    echo "Publish found"
+else
+    echo "[!] No Author or Publish Found. Try again with the correct path"
+fi
+
+if [ $toCheck -ne 2 ]
+then
+    if [ $toCheck -eq 0 ]
+    then
+        checkOwner "${aemPath}/author"
+        res=$?
+        if [ res -eq 0 ]
+        then
+            sendmail "${aemPath}/author" "" $autofix
+        else
+            echo "No mail sent. No Owner change"
+        fi
+    elif [ $toCheck -eq 1 ]
+    then
+        checkOwner "${aemPath}/publish"
+        res=$?
+        if [ res -eq 0 ]
+        then
+            sendmail "" "${aemPath}/publish" $autofix
+        else
+            echo "No mail sent. No Owner change"
+        fi
+    else
+        echo "[!] Incorrect Choice"
+        exit 1
+    fi
+else
+    FixAuthor=1
+    FixPublish=1
+    checkOwner "${aemPath}/author"
+    FixAuthor=$?
+    checkOwner "${aemPath}/publish"
+    FixPublish=$?
+
+    if [ $FixAuthor -eq 0 -a $FixPublish -eq 0 ]
+    then
+        echo "No mail sent. No Owner change"
+    elif [ $FixAuthor -eq 1 -a $FixPublish -eq 1 ]
+    then
+        sendmail "${aemPath}/author" "${aemPath}/publish" $autofix
+    elif [ $FixAuthor -eq 1 ]
+    then
+        sendmail "${aemPath}/author" "" $autofix
+    elif [ $FixPublish -eq 1 ]
+    then
+        sendmail "" "${aemPath}/publish" $autofix
+    else
+        echo ""
+    fi
+fi
