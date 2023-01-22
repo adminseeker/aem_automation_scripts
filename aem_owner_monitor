@@ -1,20 +1,40 @@
 #!/usr/bin/env bash
 
-mailconfigPath="mail.config"
-mailPath="mails.txt"
-aemPath="/opt/aem"
-autofix=true
-stoptime=30
-starttime=60
+#Full location of config yaml file
+configFilePath="/home/aravind/aem_automation_scripts/config.yaml"
+
+function parse_yaml {
+   local prefix=$2
+   local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+   sed -ne "s|^\($s\):|\1|" \
+        -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
+        -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+   awk -F$fs '{
+      indent = length($1)/2;
+      vname[indent] = $2;
+      for (i in vname) {if (i > indent) {delete vname[i]}}
+      if (length($3) > 0) {
+         vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+      }
+   }'
+}
+
+eval $(parse_yaml $configFilePath)
+
+mailPath=$mailPath
+aemPath=$aemPath
+autofix=$autofix
+stoptime=$aemstoptime
+starttime=$aemstarttime
+email=$email
+secretpass=$emailsecretkey
 
 if [ "$(id -u)" -ne 0 ]
 then
     echo "[!] Please run as super user"
     exit 1
 fi
-
-config=()
-readarray -t config < $mailconfigPath
 
 mails=()
 readarray -t mails < $mailPath
@@ -36,8 +56,8 @@ fi
 toCheck=0
 
 sendmail (){
-  sender=${config[0]}
-  pass=${config[1]}
+  sender=$email
+  pass=$secretpass
   rcpt=""
   to=""
   hostname=`hostname`
