@@ -1,0 +1,22 @@
+#please make sure all 7 configs are here
+
+#1. give the location of the installation of aem directory
+aemPath: /opt/aem
+
+#2. give the full location of the txt file containing mails that require notification
+mailPath: "/home/aravind/aem_automation_scripts/mails.txt"
+
+#3. configuration mail id that is used to send email
+email: email@email.com
+
+#4. configuration mail secret key that is used to send email
+emailsecretkey: SECRETKEY
+
+#5. If you want the script to fix the ownership issue automatically and then inform you set value to true else false
+autofix: true
+
+#6. If autofix is enabled then the time required to wait after stopping aem
+aemstoptime: 30
+
+#7. If autofix is enabled then the time required to wait after starting aem
+aemstarttime: 60
