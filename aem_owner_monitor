@@ -29,6 +29,8 @@ stoptime=$aemstoptime
 starttime=$aemstarttime
 email=$email
 secretpass=$emailsecretkey
+aemuser=$aemusername
+aemgroup=$aemgroupname
 
 if [ "$(id -u)" -ne 0 ]
 then
@@ -85,7 +87,7 @@ checkOwner () {
     Fix=0
     local array=()
     local i=0
-    for path in `find $1 -not -group 'aem' -or -not -user 'aem'`
+    for path in `find $1 -not -group $aemgroup -or -not -user $aemuser`
     do
         array[$i]="$path"
         i=$i+1
@@ -93,7 +95,7 @@ checkOwner () {
     len=${#array[*]}
     if [ $len -ne 0 ]
     then
-        echo "Non aem owner Files Count for location ($1) : $len"
+        echo "Owner changed Files Count for location ($1) : $len"
         echo "--------------------------------------------------------------------------------------------------------------------" 
         if $autofix
         then
@@ -122,7 +124,7 @@ checkOwner () {
         fi
         Fix=1
     else
-        echo "[+] No non aem owner files found for location ($1)!"
+        echo "[+] No owner change files found for location ($1)!"
         Fix=0
     fi
     return $Fix
