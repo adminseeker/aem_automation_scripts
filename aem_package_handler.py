@@ -4,7 +4,7 @@ import json
 import time
 
 host="localhost"
-port="4502"
+port="4504"
 user="admin"
 password="admin"
 
@@ -100,7 +100,7 @@ def list_packages(auth=(),host="",port="",query=""):
     for i in results:
         print(i['downloadName'])
 
-def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
+def list_filters(auth=(),host="",port="",packageName="",packageVersion="",groupName=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     url="http://"+host+":"+port+"/crx/packmgr/"
     fullPackageName=packageName
@@ -109,7 +109,11 @@ def list_filters(auth=(),host="",port="",packageName="",packageVersion=""):
     path='list.jsp?includeVersions=false&q='+fullPackageName+".zip"
     endpoint=url+path
     response = requests.get(endpoint,auth=auth,headers=headers)
-    results=response.json()['results'][0]['filter']
+    # results=response.json()['results'][0]['filter']
+    results=[]
+    for result in response.json()['results']:
+        if result['version']==packageVersion and result['group']==groupName:
+            results=result['filter']
     for i in results:
         print(i['root'])
 
@@ -161,7 +165,7 @@ def run_automation(auth=(),remoteAuth=(),host="",port="",remoteHost="",remotePor
     print("--------------------------------------------------------------------------")
     print("Listing Filters....")
     time.sleep(2)
-    list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
+    list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,groupName=groupName)
     print("--------------------------------------------------------------------------")
     print("Building Package....")
     time.sleep(2)
@@ -197,7 +201,7 @@ def run_automation(auth=(),remoteAuth=(),host="",port="",remoteHost="",remotePor
     print("--------------------------------------------------------------------------")
     print("Listing Remote Filters....")
     time.sleep(2)
-    list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
+    list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,groupName=groupName)
     print("--------------------------------------------------------------------------")
     if install=="true":
         replicate=input("Replicate? (default: false) : ")
@@ -296,7 +300,10 @@ def main():
                 print("package name required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion)
+            groupName=input("Group Name (default=my_packages): ")
+            if (groupName==""):
+                groupName="my_packages"
+            list_filters(auth=auth,host=host,port=port,packageName=packageName,packageVersion=packageVersion,groupName=groupName)
         elif choice=="6":
             packageName=input("Package Name : ")
             if(packageName==""):
@@ -373,7 +380,9 @@ def main():
                 print("package name required")
                 continue
             packageVersion=input("Version (default=blank): ")
-            list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion)
+            if (groupName==""):
+                groupName="my_packages"
+            list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,groupName=groupName)
         elif choice=="14":
             query=input("Search By Package Name: ")
             list_packages(auth=remoteAuth,host=remoteHost,port=remotePort,query=query)

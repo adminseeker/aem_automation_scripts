@@ -1,4 +1,5 @@
 *.zip
-*.txt
+*filters*.txt
+*mail*.txt
 *.config
-*.yaml
+config.yaml

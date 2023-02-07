@@ -7,10 +7,10 @@ aemPath: /opt/aem
 mailPath: /home/aravind/aem_automation_scripts/mails.txt
 
 #3. configuration mail id that is used to send email
-email: email@email.com
+email: aem.monitor.eps@gmail.com
 
 #4. configuration mail secret key that is used to send email
-emailsecretkey: SECRETKEY
+emailsecretkey: jbnrtoldebjzyism
 
 #5. Enter the linux username with which your aem app should be running as
 aemusername: aem

@@ -1,0 +1,19 @@
+#### please follow the syntax
+# packages:
+#   - name: "ttt"
+#     version: ""
+#     groupName: "my_packages"
+
+#   - name: "ttt"
+#     version: ""
+#     groupName: "my_packages1"
+
+
+packages:
+  - name: "ttt"
+    version: ""
+    groupName: "my_packages"
+
+  - name: "ttt"
+    version: ""
+    groupName: "my_packages1"
