@@ -9,8 +9,8 @@ mailPath: /home/aravind/aem_automation_scripts/mails.txt
 #3. configuration mail id that is used to send email
 email: aem.monitor.eps@gmail.com
 
-#4. configuration mail secret key that is used to send email
-emailsecretkey: jbnrtoldebjzyism
+#4. configuration mail secret key that is used to send email  
+emailsecretkey: jbnrtoldebjzyism #dummy passwd
 
 #5. Enter the linux username with which your aem app should be running as
 aemusername: aem
@@ -19,7 +19,7 @@ aemusername: aem
 aemgroupname: aem
 
 #7. If you want the script to fix the ownership issue automatically and then inform you set value to true else false
-autofix: true
+autofix: false
 
 #8. If autofix is enabled then the time required to wait after stopping aem
 aemstoptime: 30
