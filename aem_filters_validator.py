@@ -24,7 +24,9 @@ def filter_validator(filter_path=""):
     url="http://"+host+":"+port+"/crx/de/tree.jsp?path="+filter_path
     response = requests.get(url,auth=auth,headers=headers)
     if response.status_code==200:
+        print(filter_path+" : valid")
         return True
+    print(filter_path+" : invalid")
     return False
 
 def main():
