@@ -36,7 +36,6 @@ def get_filters(auth=(),host="",port="",packageName="",packageVersion="",groupNa
         filters.append(i['root'])
     return filters
 
-# print(get_filters(auth,host,port,packageName="usbankrewards.ui.content",packageVersion="1.0-SNAPSHOT",groupName="com.usbankrewards"))
 
 def merge_filters(auth=(),host="",port="",packages=[]):
     merged_filter_list=[]
