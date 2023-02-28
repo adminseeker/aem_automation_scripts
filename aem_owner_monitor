@@ -15,7 +15,7 @@ function parse_yaml {
       for (i in vname) {if (i > indent) {delete vname[i]}}
       if (length($3) > 0) {
          vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
-         printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+         printf("%s%s%s=\"%s\"*", "'$prefix'",vn, $2, $3);
       }
    }'
 }
@@ -68,9 +68,9 @@ sendmail (){
   body=""
   if $3
   then
-    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Fix deployed. Autofix is enabled</strong></p>\n"
+    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Fix deployed. Autofix is enabled</strong></p>*"
   else
-    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Please take required action. Autofix is disabled</strong></p>\n"
+    body="<p>AEM Instance(s) <strong>$1 $2</strong> in <strong>$hostname</strong> ownership changed. <strong>Please take required action. Autofix is disabled</strong></p>*"
   fi
   for mail in "${mails[@]}"
   do
@@ -79,7 +79,7 @@ sendmail (){
       to+="$mail,"
   done
   
-  mailcmd=`curl -s --url 'smtps://smtp.gmail.com:465' --ssl-reqd --mail-from $sender  $rcpt --user $sender:$pass -T <(echo -e "From: $sender\nTo: $to\nSubject: $subject\n$contentType\n$body")`
+  mailcmd=`curl -s --url 'smtps://smtp.gmail.com:465' --ssl-reqd --mail-from $sender  $rcpt --user $sender:$pass -T <(echo -e "From: $sender*To: $to*Subject: $subject*$contentType*$body")`
   echo "[+] e-mail sent"
 }
 

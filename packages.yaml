@@ -10,10 +10,10 @@
 
 
 packages:
-  - name: "ttt"
+  - name: "dummy1"
     version: ""
     groupName: "my_packages"
 
-  - name: "ttt"
+  - name: "dummy2"
     version: ""
-    groupName: "my_packages1"
+    groupName: "my_packages"

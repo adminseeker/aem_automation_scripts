@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import requests
 
-
 host="localhost"
-port="4504"
+port="4502"
 user="admin"
 password="admin"
 

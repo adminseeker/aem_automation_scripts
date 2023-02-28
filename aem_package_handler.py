@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 import requests
 import time
+import yaml
+from yaml.loader import SafeLoader
+
+
+
 
 host="localhost"
-port="4504"
+port="4502"
 user="admin"
 password="admin"
 
@@ -15,6 +20,17 @@ remotePassword="admin"
 
 auth=(user,password)
 remoteAuth=(remoteUser,remotePassword)
+
+
+packages=[]
+
+try:
+    with open('packages.yaml', 'r') as f:
+        data = list(yaml.load_all(f, Loader=SafeLoader))
+        packages=data[0]['packages']
+except:
+    iscontinue=input("No packages.yaml found!, Do you want to continue? (some options may fail!)") 
+    pass
 
 url = "http://"+host+":"+port+"/crx/packmgr/"
 
@@ -89,6 +105,19 @@ def download_package(auth=(),host="",port="",packageName="",packageVersion="",gr
     response = requests.get(endpoint,auth=auth,headers=headers)
     open(fullPackageName+".zip","wb").write(response.content)
 
+def download_packages_from_yml(auth=(),host="",port="",packages=[]):
+    print(packages)
+    for package in packages:
+        download_package(auth=auth,host=host,port=port,packageName=package['name'],packageVersion=package['version'],groupName=package['groupName'])
+        print("Downloaded Package: "+package['name'])
+
+
+def build_packages_from_yml(auth=(),host="",port="",packages=[]):
+    for package in packages:
+        handle_package(auth=auth,host=host,port=port,packageName=package['name'],packageVersion=package['version'],groupName=package['groupName'],action="build")
+        print("Built Package: "+package['name'])
+
+
 def list_packages(auth=(),host="",port="",query=""):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
     url="http://"+host+":"+port+"/crx/packmgr/"
@@ -115,6 +144,7 @@ def list_filters(auth=(),host="",port="",packageName="",packageVersion="",groupN
             results=result['filter']
     for i in results:
         print(i['root'])
+    print("Total: "+str(len(results)))
 
 def upload_package(auth=(),host="",port="",file_path=None,install="false",force="true"):
     headers = {'Referer': 'http://'+host+':'+port+'/crx/packmgr/index.jsp'}
@@ -143,7 +173,7 @@ def replicate_package(auth=(),host="",port="",packageName="",packageVersion="",g
     print(endpoint)
     response = requests.post(endpoint,headers=headers,auth=auth,data=data)
     # print(response.status_code)
-    print(str(response.status_code)+" "+ response.text.split("\n").pop().split("<textarea>").pop().split("</textarea>")[0])
+    print(str(response.status_code)+" "+ response.text.split("*").pop().split("<textarea>").pop().split("</textarea>")[0])
         
 def run_automation(auth=(),remoteAuth=(),host="",port="",remoteHost="",remotePort="",packageName="",groupName="",packageVersion="",packageDescription=""):
     try:
@@ -221,22 +251,26 @@ def menu():
         4  - Add Filters to the Package
         5  - List Package Filters
         6  - Build Package
-        7  - Install Package
-        8  - Replicate Package
-        9  - Delete Package
-        10  - Download Package
-        11  - Upload Package
-        12 - List All Remote AEM Packages
-        13 - List Remote Package Filters
-        14 - Search Remote AEM Package
-        15 - Create Remote AEM Package
-        16 - Add Filters to Remote AEM Package
-        17 - Build Remote Package
-        18 - Install Remote Package
-        19 - Replicate Remote Package
-        20 - Delete Remote Package
-        21 - Download Remote Package
-        22 - Exit
+        7  - Build All Packages From packages.yaml
+        8  - Install Package
+        9  - Replicate Package
+        10  - Delete Package
+        11  - Download Package
+        12  - Download All Packages From packages.yaml
+        13  - Upload Package
+        14 - List All Remote AEM Packages
+        15 - List Remote Package Filters
+        16 - Search Remote AEM Package
+        17 - Create Remote AEM Package
+        18 - Add Filters to Remote AEM Package
+        19 - Build Remote Package
+        20 - Build All Remote Packages From packages.yaml
+        21 - Install Remote Package
+        22 - Replicate Remote Package
+        23 - Delete Remote Package
+        24 - Download Remote Package
+        25  - Download All Remote Packages From packages.yaml
+        26 - Exit
     '''
 
 def main():
@@ -244,10 +278,10 @@ def main():
         print(menu())
         choice=input("Enter Choice: ")
         print("selected Choice: "+choice)
-        if int(choice)<0 or int(choice) >22:
+        if int(choice)<0 or int(choice) >26:
             print("Incorrect Choice, Please Try Again!")
             continue
-        if choice=="22":
+        if choice=="26":
             break
         if choice=="0":
             packageName=input("Package Name : ")
@@ -313,8 +347,17 @@ def main():
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="build")
-            print("[+] Build Successfull")            
+            print("[+] Build Successfull")
+
         elif choice=="7":
+            isBuild=input("Bulid All Packages from Yaml? (defualt=true): ")
+            if isBuild=="false":
+                print("[!]Build Cancelled")
+                continue
+            build_packages_from_yml(auth=auth,host=host,port=port,packages=packages)
+            print("[+] Build Successfull")  
+
+        elif choice=="8":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -325,7 +368,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="install")
             print("[+] Install Successfull")
-        elif choice=="8":
+        elif choice=="9":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -336,7 +379,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             replicate_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
             print("[+] Replication Successfull")              
-        elif choice=="9":
+        elif choice=="10":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -347,7 +390,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="delete")
             print("[+] Delete Successfull")            
-        elif choice=="10":
+        elif choice=="11":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -357,8 +400,17 @@ def main():
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
             download_package(auth=auth,host=host,port=port,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
-            print("[+] Download Successfull") 
-        elif choice=="11":
+            print("[+] Download Successfull")
+
+        elif choice=="12":
+            isDownload=input("Download All Packages from Yaml? (defualt=true): ")
+            if isDownload=="false":
+                print("[!]Download Cancelled")
+                continue
+            download_packages_from_yml(auth=auth,host=host,port=port,packages=packages)
+            print("[+] Download Successfull")  
+           
+        elif choice=="13":
             force=input("force upload (default=true): ")
             if (force==""):
                 force="true"
@@ -371,21 +423,22 @@ def main():
                 continue
             upload_package(auth=remoteAuth,host=remoteHost,port=remotePort,file_path=filePath,install=install,force=force)
             print("[+] Upload Successfull") 
-        elif choice=="12":
+        elif choice=="14":
             list_packages(auth=remoteAuth,host=remoteHost,port=remotePort)
-        elif choice=="13":
+        elif choice=="15":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("package name required")
                 continue
             packageVersion=input("Version (default=blank): ")
+            groupName=input("Group Name : ")
             if (groupName==""):
                 groupName="my_packages"
             list_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,packageVersion=packageVersion,groupName=groupName)
-        elif choice=="14":
+        elif choice=="16":
             query=input("Search By Package Name: ")
             list_packages(auth=remoteAuth,host=remoteHost,port=remotePort,query=query)
-        elif choice=="15":
+        elif choice=="17":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("package name required")
@@ -396,7 +449,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             create_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
             print("[+] Package Created") 
-        elif choice=="16":
+        elif choice=="18":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -412,7 +465,7 @@ def main():
                 continue
             add_filters(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,filters_file_path=filePath,packageVersion=packageVersion,groupName=groupName,description=packageDescription)
             print("[+] Filters Added") 
-        elif choice=="17":
+        elif choice=="19":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -423,7 +476,16 @@ def main():
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="build")
             print("[+] Build Successfull") 
-        elif choice=="18":
+
+        elif choice=="20":
+            isBuild=input("Bulid All Packages from Yaml? (defualt=true): ")
+            if isBuild=="false":
+                print("[!]Build Cancelled")
+                continue
+            build_packages_from_yml(auth=remoteAuth,host=remoteHost,port=remotePort,packages=packages)
+            print("[+] Build Successfull")  
+
+        elif choice=="21":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -434,7 +496,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="install")
             print("[+] Install Successfull")
-        elif choice=="19":
+        elif choice=="22":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -445,7 +507,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             replicate_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
             print("[+] Replication Successfull") 
-        elif choice=="20":
+        elif choice=="23":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -456,7 +518,7 @@ def main():
             packageVersion=input("Version (default=blank): ")
             handle_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion,action="delete")
             print("[+] Delete Successfull") 
-        elif choice=="21":
+        elif choice=="24":
             packageName=input("Package Name : ")
             if(packageName==""):
                 print("Package Name Required")
@@ -466,7 +528,16 @@ def main():
                 groupName="my_packages"
             packageVersion=input("Version (default=blank): ")
             download_package(auth=remoteAuth,host=remoteHost,port=remotePort,packageName=packageName,groupName=groupName,packageVersion=packageVersion)
-            print("[+] Download Successfull") 
+            print("[+] Download Successfull")
+
+        elif choice=="25":
+            isDownload=input("Download All Packages from Yaml? (defualt=true): ")
+            if isDownload=="false":
+                print("[!]Download Cancelled")
+                continue
+            download_packages_from_yml(auth=remoteAuth,host=remoteHost,port=remotePort,packages=packages)
+            print("[+] Download Successfull")  
+
         else:
             print("Incorrect Choice, Please Try Again!")
             continue
