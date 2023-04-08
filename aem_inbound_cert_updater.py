@@ -301,11 +301,11 @@ def upload_cert(host="",port="",auth=(),certpath="",cert_type="",instance={},pai
                     if post_cert not in pre_upload_truststore:
                         uploaded_cert=post_cert
                 print("Uploaded Cert To Truststore: ")
-                print(post_cert)
+                print(uploaded_cert)
                 if update_crx_de:
                     osgipath=instance['inboundosgipaths'][cert_type]
                     updates=[]
-                    updates.append(create_update(osgipath=osgipath,key="idpCertAlias",value=post_cert['alias']))
+                    updates.append(create_update(osgipath=osgipath,key="idpCertAlias",value=uploaded_cert['alias']))
                     update_certs_crx_de_values(host=host,port=port,auth=auth,updates=updates)                                
             elif certpath.endswith(".der") and pair_cer_path!="" and der_alias!="":
                 pre_upload_keystore=get_keystore_certs(host=host,port=port,auth=auth)
@@ -316,11 +316,15 @@ def upload_cert(host="",port="",auth=(),certpath="",cert_type="",instance={},pai
                     if post_cert not in pre_upload_keystore:
                         uploaded_cert=post_cert
                 print("Uploaded Cert To Keystore: ")
-                print(post_cert)
+                print(uploaded_cert)
                 if update_crx_de:
                     osgipath=instance['inboundosgipaths'][cert_type]
+                    if len(uploaded_cert)==0:
+                        for post_cert in post_upload_keystore:
+                            if der_alias in post_cert.values():
+                                uploaded_cert=post_cert
                     updates=[]
-                    updates.append(create_update(osgipath=osgipath,key="spPrivateKeyAlias",value=post_cert['alias']))
+                    updates.append(create_update(osgipath=osgipath,key="spPrivateKeyAlias",value=uploaded_cert['alias']))
                     update_certs_crx_de_values(host=host,port=port,auth=auth,updates=updates)                      
             else:
                 raise Exception("Invalid Arguments!")
@@ -372,3 +376,9 @@ def main(config_file=config_file):
     print("End of Script!")
 
 main(config_file=config_file)
+
+# environment=get_environment(config_file=config_file,env="prod")
+# osgipath=environment[0]['inboundosgipaths']["redeem"]
+# updates=[]
+# updates.append(create_update(osgipath=osgipath,key="spPrivateKeyAlias",value="ppp"))
+# update_certs_crx_de_values(host=environment[0]['host'],port=environment[0]['port'],auth=(environment[0]['username'],environment[0]['password']),updates=updates)
