@@ -109,6 +109,8 @@ def get_private_key_from_pemfile(filepath=""):
                     key+=line
 
         key=key.replace("\n","")
+        if key=="":
+            raise Exception("Private Key Not Found")
         return key
     except Exception as e:
         print("Fetching private key from PEM File failed!")
