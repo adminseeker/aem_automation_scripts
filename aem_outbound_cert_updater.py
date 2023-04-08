@@ -226,7 +226,6 @@ def choose_cert_file(config_file=""):
     except Exception as e:
         print("Error In Choosing Cert File! error: "+str(e))
 
-
 def upload_certs_to_environment(config_file="",environment=[],name="",filepath="",key=""):
     try:
         
@@ -259,12 +258,3 @@ def main(config_file=""):
     print("End of Script!")       
 
 main(config_file=config_file)
-
-# print(choose_environment(config_file=config_file))
-# print(choose_cert_file(config_file=config_file))
-        
-# print(get_outbound_cert_values(host="localhost",port="4503",auth=("admin","admin"),osgipath=get_environment(config_file=config_file,env="prod")[0]['outboundosgipath'],key="getRoX509Cert"))
-# print(get_environment(config_file=config_file,env="prod")[0]['outboundosgipath'])
-
-# print(choose_cert_type(config_file=config_file))
-# print(choose_cert_variation(config_file=config_file,cert_type="connexions"))
