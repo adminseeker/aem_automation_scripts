@@ -94,7 +94,7 @@ def upload_to_keystore(host="",port="",auth=(),alias="",cer_file_path=None,der_f
 def get_private_key_from_pemfile(filepath=""):
     try:
         key=""
-        with open("cert-uploads/inbound/Epsilon-usb-saml.pem") as file:
+        with open(filepath) as file:
             copy=False
             for line in file:
                 if line.strip()=="-----BEGIN PRIVATE KEY-----":
