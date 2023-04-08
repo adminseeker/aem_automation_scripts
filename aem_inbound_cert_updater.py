@@ -96,6 +96,11 @@ def get_private_key_from_pemfile(filepath=""):
         key=""
         with open(filepath) as file:
             copy=False
+            content=file.readlines()
+            if len(content) <2 or "-----END PRIVATE KEY-----" in content[0]:
+                content[0]=content[0].replace("\n","")
+                return content[0]
+            file.seek(0)
             for line in file:
                 if line.strip()=="-----BEGIN PRIVATE KEY-----":
                     key+="-----BEGIN PRIVATE KEY-----"
@@ -110,11 +115,10 @@ def get_private_key_from_pemfile(filepath=""):
 
         key=key.replace("\n","")
         if key=="":
-            raise Exception("Private Key Not Found")
+            raise Exception("private Key Not Found")
         return key
     except Exception as e:
-        print("Fetching private key from PEM File failed!")
-        print("Exception Error Occured In Fetching PEM File! error: "+str(e))
+        print("Exception Error Occured In Fetching Private key! error: "+str(e))
         
 def upload_pemfile(host="",port="",auth=(),filepath="",osgipath=""):
     try:
