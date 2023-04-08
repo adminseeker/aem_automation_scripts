@@ -1,4 +1,5 @@
 inboundcertsfolder: cert-uploads/inbound
+outboundcertsfolder: cert-uploads/outbound
 
 certtypes:
   inbound:
@@ -8,9 +9,18 @@ certtypes:
     - rewards
     - privatekey
   outbound:
-    - privatekey
-    - encryption
-    - x509
+    connexions:
+      - getConnexionsPrivateKeyString
+      - getConnexionsEncryptionCert
+      - getConnexionsX509CertString
+    ro:
+      - getRoPrivateKeyString
+      - getRoEncryptionCert
+      - getRoX509CertString
+    promo:
+      - getPromoPrivateKeyString
+      - getPromoEncryptionCert
+      - getPromoX509CertString
 
 environments:
   prod:
@@ -19,19 +29,25 @@ environments:
       username: "admin"
       password: "admin"
       inboundosgipaths:
-          axol: <OSGIPATH>
-          polaris:  <OSGIPATH>
-          redeem: <OSGIPATH>
-          rewards:  <OSGIPATH>
-          privatekey:  <OSGIPATH>
+        axol: <osgipath>
+        polaris:  <osgipath>
+        redeem: <osgipath>
+        rewards:  <osgipath>
+        privatekey:  <osgipath>
+      outboundosgipath: <osgipath>
+
+
 
     - host: "localhost"
       port: "4502"
       username: "admin"
       password: "admin"
       inboundosgipaths:
-          axol: <OSGIPATH>
-          polaris: <OSGIPATH>
-          redeem: <OSGIPATH>
-          rewards:  <OSGIPATH>
-          privatekey:  <OSGIPATH>
+        axol: <osgipath>
+        polaris: <osgipath>
+        redeem: <osgipath>
+        rewards:  <osgipath>
+        privatekey:  <osgipath>
+      outboundosgipath: <osgipath>
+
+  try:    
