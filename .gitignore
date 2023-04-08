@@ -4,3 +4,5 @@
 *.config
 config.yaml
 new.txt
+try*
+cert-uploads/

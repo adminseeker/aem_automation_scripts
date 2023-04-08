@@ -1,0 +1,37 @@
+inboundcertsfolder: cert-uploads/inbound
+
+certtypes:
+  inbound:
+    - axol
+    - polaris
+    - redeem
+    - rewards
+    - privatekey
+  outbound:
+    - privatekey
+    - encryption
+    - x509
+
+environments:
+  prod:
+    - host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+      inboundosgipaths:
+          axol: <OSGIPATH>
+          polaris:  <OSGIPATH>
+          redeem: <OSGIPATH>
+          rewards:  <OSGIPATH>
+          privatekey:  <OSGIPATH>
+
+    - host: "localhost"
+      port: "4502"
+      username: "admin"
+      password: "admin"
+      inboundosgipaths:
+          axol: <OSGIPATH>
+          polaris: <OSGIPATH>
+          redeem: <OSGIPATH>
+          rewards:  <OSGIPATH>
+          privatekey:  <OSGIPATH>
