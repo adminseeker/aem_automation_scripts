@@ -376,9 +376,3 @@ def main(config_file=config_file):
     print("End of Script!")
 
 main(config_file=config_file)
-
-# environment=get_environment(config_file=config_file,env="prod")
-# osgipath=environment[0]['inboundosgipaths']["redeem"]
-# updates=[]
-# updates.append(create_update(osgipath=osgipath,key="spPrivateKeyAlias",value="ppp"))
-# update_certs_crx_de_values(host=environment[0]['host'],port=environment[0]['port'],auth=(environment[0]['username'],environment[0]['password']),updates=updates)
