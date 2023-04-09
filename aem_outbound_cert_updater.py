@@ -143,20 +143,21 @@ def upload_cert(host="",port="",auth=(),instance={},key="",value=""):
         print("Error In Uploading Cert Value "+instance["host"]+":"+instance["port"]+"! error: "+str(e))
 
 def choose_environment(config_file=""):
-    try:
-        env_names=get_environment_names(config_file=config_file)
-        i=0
-        print("Available Environments: ")
-        for name in env_names:
-            i=i+1
-            print(str(i)+" - "+name)
-        env_option=int(input("Choose Environment: "))
-        if type(env_option)!=int or env_option > len(env_names) or env_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return env_names[env_option-1]
-    except Exception as e:
-        print("Error In Choosing Environment! error: "+str(e))
+    while True:
+        try:
+            env_names=get_environment_names(config_file=config_file)
+            i=0
+            print("Available Environments: ")
+            for name in env_names:
+                i=i+1
+                print(str(i)+" - "+name)
+            env_option=int(input("Choose Environment: "))
+            if type(env_option)!=int or env_option > len(env_names) or env_option<1:
+                raise Exception("Invalid Option!")
+            return env_names[env_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
 
 def get_cert_types(config_file=""):
     try:
@@ -179,52 +180,57 @@ def get_cert_variations(config_file="",cert_type=""):
         print("Error in reading config file: "+str(e))    
 
 def choose_cert_type(config_file=""):
-    try:
-        cert_types=get_cert_types(config_file=config_file)
-        i=0
-        print("Available Outbound Cert Types: ")
-        for cert_type in cert_types:
-            i=i+1
-            print(str(i)+" - "+cert_type)
-        cert_type_option=int(input("Choose Outbound Cert Type: "))
-        if type(cert_type_option)!=int or cert_type_option > len(cert_types) or cert_type_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return list(cert_types.keys())[cert_type_option-1]
-    except Exception as e:
-        print("Error In Choosing Cert Type! error: "+str(e))
+    while True:
+        try:
+            cert_types=get_cert_types(config_file=config_file)
+            i=0
+            print("Available Outbound Cert Types: ")
+            for cert_type in cert_types:
+                i=i+1
+                print(str(i)+" - "+cert_type)
+            cert_type_option=int(input("Choose Outbound Cert Type: "))
+            if type(cert_type_option)!=int or cert_type_option > len(cert_types) or cert_type_option<1:
+                raise Exception("Invalid Option!")
+            return list(cert_types.keys())[cert_type_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
         
 def choose_cert_variation(config_file="",cert_type=""):
-    try:
-        cert_variations=get_cert_variations(config_file=config_file,cert_type=cert_type)
-        i=0
-        print("Available "+cert_type+" Cert Types: ")
-        for cert_variation in cert_variations:
-            i=i+1
-            print(str(i)+" - "+cert_variation)
-        cert_variation_option=int(input("Choose "+cert_type+" Cert Type: "))
-        if type(cert_variation_option)!=int or cert_variation_option > len(cert_variations) or cert_variation_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return cert_variations[cert_variation_option-1]
-    except Exception as e:
-        print("Error In Choosing Cert Type! error: "+str(e))
+    while True:
+        try:
+            cert_variations=get_cert_variations(config_file=config_file,cert_type=cert_type)
+            i=0
+            print("Available "+cert_type+" Cert Types: ")
+            for cert_variation in cert_variations:
+                i=i+1
+                print(str(i)+" - "+cert_variation)
+            cert_variation_option=int(input("Choose "+cert_type+" Cert Type: "))
+            if type(cert_variation_option)!=int or cert_variation_option > len(cert_variations) or cert_variation_option<1:
+                raise Exception("Invalid Option!")
+            return cert_variations[cert_variation_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+        
         
 def choose_cert_file(config_file=""):
-    try:
-        cert_files=get_filenames(folder=get_certs_folder(config_file=config_file))
-        i=0
-        print("Available Outbound Cert files: ")
-        for cert_file in cert_files:
-            i=i+1
-            print(str(i)+" - "+cert_file)
-        cert_file_option=int(input("Choose Outbound Cert file: "))
-        if type(cert_file_option)!=int or cert_file_option > len(cert_files) or cert_file_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return cert_files[cert_file_option-1]
-    except Exception as e:
-        print("Error In Choosing Cert File! error: "+str(e))
+    while True:
+        try:
+            cert_files=get_filenames(folder=get_certs_folder(config_file=config_file))
+            i=0
+            print("Available Outbound Cert files: ")
+            for cert_file in cert_files:
+                i=i+1
+                print(str(i)+" - "+cert_file)
+            cert_file_option=int(input("Choose Outbound Cert file: "))
+            if type(cert_file_option)!=int or cert_file_option > len(cert_files) or cert_file_option<1:
+                raise Exception("Invalid Option!")
+            return cert_files[cert_file_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+
 
 def upload_certs_to_environment(config_file="",environment=[],name="",filepath="",key=""):
     try:
