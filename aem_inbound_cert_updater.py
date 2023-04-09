@@ -264,7 +264,6 @@ def choose_environment(config_file=""):
             print("Invalid Option!")
             continue
 
-
 def choose_cert_type(config_file="",cert_variation="",environment=[]):
     while True:
         try:
@@ -299,6 +298,7 @@ def choose_cert_file(config_file=""):
         except Exception as e:
             print("Invalid Option!")
             continue
+        
 def upload_cert(host="",port="",auth=(),certpath="",cert_type="",instance={},pair_cer_path="",der_alias="",update_crx_de=False):
     try:
         if not certpath.endswith(".pem"):
@@ -376,17 +376,86 @@ def upload_certs_to_environment(config_file="",environment=[],name="",certs_fold
         print("Upload Process to all instances in "+name+" Completed Successfully!")
     except Exception as e:
         print("Error In Uploading Cert to environment: "+name+"! error: "+str(e))
+        
+def view_current_certs(environment=[],instance={}):
+    print("Current Certs in instance - "+instance["host"]+":"+instance["port"]+":- ")
+    truststore_certs,keystore_certs=get_certs_from_instance(environment=environment,hostoption=environment.index(instance)+1)
+    print("Trust Store Certs: ")
+    for i in truststore_certs:
+        print(i)
+    print("Key Store Certs: ")
+    for i in keystore_certs:
+        print(i)
+        
+def view_current_alias(instance={},cert_type=""):
+    try:
+        endpoint="http://"+instance["host"]+":"+instance["port"]+"/crx/server/crx.default/jcr:root"+instance["inboundosgipaths"][cert_type]+".json"
+        response = requests.get(endpoint,auth=(instance["username"],instance["password"]))
+        if cert_type!="privatekey":
+            print(cert_type+" alias for instance: "+instance["host"]+":"+instance["port"]+":- ")
+            print("idpCertAlias: "+response.json()["idpCertAlias"])
+            print("spPrivateKeyAlias: "+response.json()["spPrivateKeyAlias"])
+        else:
+            print("PrivateKey for instance: "+instance["host"]+":"+instance["port"]+":- ")
+            print("getUSBankPrivateKey: "+response.json()["getUSBankPrivateKey"])
+    except Exception as e:
+        print("Exception Error Occured In Fetching cert value! error: "+str(e))
+
+def choose_hostoption(environment=[]):
+    while True:
+        try:
+            instances=environment
+            i=0
+            print("Available Instances: ")
+            for instance in instances:
+                i=i+1
+                print(str(i)+" - "+instance["host"]+":"+instance["port"])
+            instance_option=int(input("Choose Instance: "))
+            if type(instance_option)!=int or instance_option > len(instances) or instance_option<1:
+                raise Exception("Invalid Option!")
+            return instances[instance_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+
+def actions_menu():
+    while True:
+        try:
+            options=["view current certs","view current cert values in crx de","upload certs"]
+            i=0
+            for option in options:
+                i=i+1
+                print(str(i)+" - "+option) 
+            selected_option=int(input("Choose Option: "))
+            if type(selected_option)!=int or selected_option > len(options) or selected_option<1:
+                raise Exception("Invalid Option!")
+            return options[selected_option-1]          
+        except:
+            print("Invalid Option!")
+            continue
+
+def upload_process(config_file="",certs_folder="",environment=[],env=""):
+    cert_type=choose_cert_type(config_file=config_file,cert_variation="inbound",environment=environment)
+    print("Selected Inbound Cert Type: "+cert_type)
+    cert_file=choose_cert_file(config_file=config_file)
+    print("Selected Cert File: "+cert_file)
+    upload_certs_to_environment(config_file=config_file,environment=environment,name=env,certs_folder=certs_folder,certpath=cert_file,cert_type=cert_type)
 
 def main(config_file=config_file):
     env=choose_environment(config_file=config_file)
     certs_folder=get_certs_folder(config_file=config_file)
     print("Selected Environment: "+env)
     environment=get_environment(config_file=config_file,env=env)
-    cert_type=choose_cert_type(config_file=config_file,cert_variation="inbound",environment=environment)
-    print("Selected Inbound Cert Type: "+cert_type)
-    cert_file=choose_cert_file(config_file=config_file)
-    print("Selected Cert File: "+cert_file)
-    upload_certs_to_environment(config_file=config_file,environment=environment,name=env,certs_folder=certs_folder,certpath=cert_file,cert_type=cert_type)
+    action=actions_menu()
+    if action=="upload certs":
+        upload_process(config_file=config_file,certs_folder=certs_folder,environment=environment,env=env)
+    elif action=="view current certs":
+        instance=choose_hostoption(environment=environment)
+        view_current_certs(environment=environment,instance=instance)
+    elif action=="view current cert values in crx de":
+        instance=choose_hostoption(environment=environment)
+        cert_type=choose_cert_type(config_file=config_file,cert_variation="inbound",environment=environment)
+        view_current_alias(instance=instance,cert_type=cert_type)
     print("End of Script!")
 
 main(config_file=config_file)

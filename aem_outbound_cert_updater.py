@@ -133,7 +133,6 @@ def get_outbound_cert_values(host="",port="",auth=(),osgipath="",key=""):
     except Exception as e:
         print("Exception Error Occured In Fetching cert value! error: "+str(e))
         
-
 def upload_cert(host="",port="",auth=(),instance={},key="",value=""):
     try:
         updates=[]
@@ -213,7 +212,6 @@ def choose_cert_variation(config_file="",cert_type=""):
             print("Invalid Option!")
             continue
         
-        
 def choose_cert_file(config_file=""):
     while True:
         try:
@@ -230,7 +228,6 @@ def choose_cert_file(config_file=""):
         except Exception as e:
             print("Invalid Option!")
             continue
-
 
 def upload_certs_to_environment(config_file="",environment=[],name="",filepath="",key=""):
     try:
@@ -249,6 +246,48 @@ def upload_certs_to_environment(config_file="",environment=[],name="",filepath="
     except Exception as e:
         print("Error In Uploading Cert to environment: "+name+"! error: "+str(e))
 
+def view_current_cert(instance={},cert_variation=""):
+    try:
+        endpoint="http://"+instance["host"]+":"+instance["port"]+"/crx/server/crx.default/jcr:root"+instance["outboundosgipath"]+".json"
+        response = requests.get(endpoint,auth=(instance["username"],instance["password"]))
+        print(cert_variation+" for instance: "+instance["host"]+":"+instance["port"]+":- ")
+        print(cert_variation+": "+response.json()[cert_variation])
+    except Exception as e:
+        print("Exception Error Occured In Fetching cert value! error: "+str(e))
+
+def choose_hostoption(environment=[]):
+    while True:
+        try:
+            instances=environment
+            i=0
+            print("Available Instances: ")
+            for instance in instances:
+                i=i+1
+                print(str(i)+" - "+instance["host"]+":"+instance["port"])
+            instance_option=int(input("Choose Instance: "))
+            if type(instance_option)!=int or instance_option > len(instances) or instance_option<1:
+                raise Exception("Invalid Option!")
+            return instances[instance_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+
+def actions_menu():
+    while True:
+        try:
+            options=["view current cert","upload cert"]
+            i=0
+            for option in options:
+                i=i+1
+                print(str(i)+" - "+option) 
+            selected_option=int(input("Choose Option: "))
+            if type(selected_option)!=int or selected_option > len(options) or selected_option<1:
+                raise Exception("Invalid Option!")
+            return options[selected_option-1]          
+        except:
+            print("Invalid Option!")
+            continue
+
 def main(config_file=""):
     env=choose_environment(config_file=config_file)
     certs_folder=get_certs_folder(config_file=config_file)
@@ -258,9 +297,14 @@ def main(config_file=""):
     print("Selected Outbound Cert Type: "+cert_type)
     cert_variation=choose_cert_variation(config_file=config_file,cert_type=cert_type)
     print("Selected "+cert_type+" Cert Type: "+cert_variation)
-    cert_file=choose_cert_file(config_file=config_file)
-    print("Selected Cert File: "+cert_file)
-    upload_certs_to_environment(config_file=config_file,environment=environment,name=env,filepath=certs_folder+cert_file,key=cert_variation)
+    action=actions_menu()
+    if action=="upload cert":
+        cert_file=choose_cert_file(config_file=config_file)
+        print("Selected Cert File: "+cert_file)
+        upload_certs_to_environment(config_file=config_file,environment=environment,name=env,filepath=certs_folder+cert_file,key=cert_variation)
+    elif action=="view current cert":
+        instance=choose_hostoption(environment=environment)
+        view_current_cert(instance=instance,cert_variation=cert_variation)
     print("End of Script!")       
 
 main(config_file=config_file)
