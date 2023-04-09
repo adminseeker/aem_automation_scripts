@@ -248,53 +248,57 @@ def get_certs_from_instance(environment=[],hostoption=0):
         print("Error In Listing Certs! error: "+str(e)) 
 
 def choose_environment(config_file=""):
-    try:
-        env_names=get_environment_names(config_file=config_file)
-        i=0
-        print("Available Environments: ")
-        for name in env_names:
-            i=i+1
-            print(str(i)+" - "+name)
-        env_option=int(input("Choose Environment: "))
-        if type(env_option)!=int or env_option > len(env_names) or env_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return env_names[env_option-1]
-    except Exception as e:
-        print("Error In Choosing Environment! error: "+str(e))
+    while True:
+        try:
+            env_names=get_environment_names(config_file=config_file)
+            i=0
+            print("Available Environments: ")
+            for name in env_names:
+                i=i+1
+                print(str(i)+" - "+name)
+            env_option=int(input("Choose Environment: "))
+            if type(env_option)!=int or env_option > len(env_names) or env_option<1:
+                raise Exception("Invalid Option!")
+            return env_names[env_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
 
-def choose_cert_type(config_file="",cert_variation=""):
-    try:
-        cert_types=get_certtypes(config_file=config_file,cert_variation=cert_variation)
-        i=0
-        print("Available Inbound Cert Types: ")
-        for cert_type in cert_types:
-            i=i+1
-            print(str(i)+" - "+cert_type)
-        cert_type_option=int(input("Choose Inbound Cert Type: "))
-        if type(cert_type_option)!=int or cert_type_option > len(cert_types) or cert_type_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return cert_types[cert_type_option-1]
-    except Exception as e:
-        print("Error In Choosing Cert Type! error: "+str(e))
+
+def choose_cert_type(config_file="",cert_variation="",environment=[]):
+    while True:
+        try:
+            # cert_types=get_certtypes(config_file=config_file,cert_variation=cert_variation)
+            available_certs=environment[0]['inboundosgipaths']
+            i=0
+            print("Available Inbound Cert Types: ")
+            for cert_type in available_certs:
+                i=i+1
+                print(str(i)+" - "+cert_type)
+            cert_type_option=int(input("Choose Inbound Cert Type: "))
+            if type(cert_type_option)!=int or cert_type_option > len(available_certs) or cert_type_option<1:
+                raise Exception("Invalid Option!")
+            return list(available_certs.keys())[cert_type_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue        
         
 def choose_cert_file(config_file=""):
-    try:
-        cert_files=get_filenames(folder=get_certs_folder(config_file=config_file))
-        i=0
-        print("Available Inbound Cert files: ")
-        for cert_file in cert_files:
-            i=i+1
-            print(str(i)+" - "+cert_file)
-        cert_file_option=int(input("Choose Inbound Cert file: "))
-        if type(cert_file_option)!=int or cert_file_option > len(cert_files) or cert_file_option<1:
-                print("Invalid Option!")
-                sys.exit(-1)
-        return cert_files[cert_file_option-1]
-    except Exception as e:
-        print("Error In Choosing Cert File! error: "+str(e))
-
+    while True:
+        try:
+            cert_files=get_filenames(folder=get_certs_folder(config_file=config_file))
+            i=0
+            print("Available Inbound Cert files: ")
+            for cert_file in cert_files:
+                i=i+1
+                print(str(i)+" - "+cert_file)
+            cert_file_option=int(input("Choose Inbound Cert file: "))
+            if type(cert_file_option)!=int or cert_file_option > len(cert_files) or cert_file_option<1:
+                raise Exception("Invalid Option!")
+            return cert_files[cert_file_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
 def upload_cert(host="",port="",auth=(),certpath="",cert_type="",instance={},pair_cer_path="",der_alias="",update_crx_de=False):
     try:
         if not certpath.endswith(".pem"):
@@ -345,12 +349,14 @@ def upload_certs_to_environment(config_file="",environment=[],name="",certs_fold
         print("Starting Upload Process to all instances in "+name+"....")
         update_crx_de_option=input("Do you want to update crx de values? (y/n): ")
         update_crx_de=False
-        if update_crx_de_option=="y" or update_crx_de_option=="Y":
-            update_crx_de=True
-        elif update_crx_de_option=="n" or update_crx_de_option=="N":
-            update_crx_de_option=False
-        else:
-            raise Exception("Invalid Option!")
+        while(update_crx_de_option.strip()==""):
+            update_crx_de_option=input("Do you want to update crx de values? (y/n): ")
+            if update_crx_de_option=="y" or update_crx_de_option=="Y":
+                update_crx_de=True
+            elif update_crx_de_option=="n" or update_crx_de_option=="N":
+                update_crx_de_option=False
+            else:
+                print("Invalid Option!")
         if certpath.endswith(".cer") or certpath.endswith(".crt") or certpath.endswith(".pem") :
             for instance in environment:
                 print("Uploading In Instance: "+instance['host']+":"+instance['port']+".....")
@@ -361,6 +367,8 @@ def upload_certs_to_environment(config_file="",environment=[],name="",certs_fold
             cer_file=choose_cert_file(config_file=config_file)
             print("selected cer file: "+cer_file+" , selected der file: "+certpath)
             der_alis=input("Type Alias for der file in keystore: ")
+            while(der_alis.strip()==""):
+                der_alis=input("Type Alias for der file in keystore: ")
             for instance in environment:
                 print("Uploading In Instance: "+instance['host']+":"+instance['port']+".....")
                 upload_cert(host=instance['host'],port=instance['port'],auth=(instance['username'],instance['password']),certpath=certs_folder+certpath,cert_type=cert_type,instance=instance,pair_cer_path=certs_folder+cer_file,der_alias=der_alis,update_crx_de=update_crx_de)
@@ -374,7 +382,7 @@ def main(config_file=config_file):
     certs_folder=get_certs_folder(config_file=config_file)
     print("Selected Environment: "+env)
     environment=get_environment(config_file=config_file,env=env)
-    cert_type=choose_cert_type(config_file=config_file,cert_variation="inbound")
+    cert_type=choose_cert_type(config_file=config_file,cert_variation="inbound",environment=environment)
     print("Selected Inbound Cert Type: "+cert_type)
     cert_file=choose_cert_file(config_file=config_file)
     print("Selected Cert File: "+cert_file)
