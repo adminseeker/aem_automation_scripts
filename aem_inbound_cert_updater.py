@@ -349,6 +349,13 @@ def upload_certs_to_environment(config_file="",environment=[],name="",certs_fold
         print("Starting Upload Process to all instances in "+name+"....")
         update_crx_de_option=input("Do you want to update crx de values? (y/n): ")
         update_crx_de=False
+        if update_crx_de_option.strip()!="":
+            if update_crx_de_option=="y" or update_crx_de_option=="Y":
+                update_crx_de=True
+            elif update_crx_de_option=="n" or update_crx_de_option=="N":
+                update_crx_de_option=False
+            else:
+                print("Invalid Option!") 
         while(update_crx_de_option.strip()==""):
             update_crx_de_option=input("Do you want to update crx de values? (y/n): ")
             if update_crx_de_option=="y" or update_crx_de_option=="Y":
