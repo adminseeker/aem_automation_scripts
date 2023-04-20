@@ -1,0 +1,81 @@
+
+sharepoint:
+  username: <username>
+  password: <base64encodedpassword>
+  siteurl:  <sharepoint site url>
+  fileurl: <sharepoint folder url with files>
+
+environments:
+  prod:
+    - name: "prod-aut01"
+      type: "author"
+      host: "localhost"
+      port: "4502"
+      username: "admin"
+      password: "admin"
+
+    - name: "prod-pub01"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+    
+    - name: "prod-pub02"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+    - name: "prod-pub03"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+    - name: "prod-pub04"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+  dr:
+    - name: "dr-aut01"
+      type: "author"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+    - name: "dr-pub01"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+    
+    - name: "dr-pub02"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+    - name: "dr-pub03"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+
+    - name: "dr-pub04"
+      type: "publish"
+      host: "localhost"
+      port: "4503"
+      username: "admin"
+      password: "admin"
+    
+  
