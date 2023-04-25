@@ -25,8 +25,6 @@ def config_sharepoint_init(config_file=""):
     except Exception as e:
         print("Error in reading config file: "+str(e))
 
-user_credentials,site_url,file_url = config_sharepoint_init(config_file=config_file)
-
 def get_file_name(fileName=""):
      file_path=fileName
      if "/" in file_path and "\\" not in file_path:
@@ -55,6 +53,16 @@ def get_sharepoint_files(ctx=None,file_url=""):
         file_names.append(file.properties["Name"])
     return file_names
 
+def get_sharepoint_folders(ctx=None,file_url=""):
+    target_folder = ctx.web.get_folder_by_server_relative_url(file_url)
+    file_names = []  
+    sub_folders = target_folder.folders   
+    ctx.load(sub_folders)  
+    ctx.execute_query()  
+    for file in sub_folders:
+        file_names.append(file.properties["Name"])
+    return file_names
+
 def choose_package_to_install(ctx=None, file_url=""):
     while True:
         try:
@@ -73,6 +81,40 @@ def choose_package_to_install(ctx=None, file_url=""):
             print("Invalid Option!")
             continue
         
+def choose_release_year(ctx=None, file_url=""):
+    while True:
+        try:
+            files=get_sharepoint_folders(ctx=ctx,file_url=file_url)
+            i=0
+            print("Release Years: ")
+            for name in files:
+                i=i+1
+                print(str(i)+" - "+name)
+            file_option=int(input("Choose Release Year: "))
+            if type(file_option)!=int or file_option > len(files) or file_option<1:
+                raise Exception("Invalid Option!")
+            return files[file_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+
+def choose_release_date(ctx=None, file_url="",release_year=""):
+    while True:
+        try:
+            files=get_sharepoint_folders(ctx=ctx,file_url=file_url+"/"+release_year)
+            i=0
+            print("Release Dates: ")
+            for name in files:
+                i=i+1
+                print(str(i)+" - "+name)
+            file_option=int(input("Choose Release Date: "))
+            if type(file_option)!=int or file_option > len(files) or file_option<1:
+                raise Exception("Invalid Option!")
+            return files[file_option-1]
+        except Exception as e:
+            print("Invalid Option!")
+            continue
+
 def download_package_from_sharepoint(ctx=None,file_url=""):
     try:
         package=choose_package_to_install(ctx=ctx,file_url=file_url)
@@ -293,8 +335,11 @@ def install_package(config_file="",package_path=""):
         
 def main():
     print("Connecting to Sharepoint....")
+    user_credentials,site_url,file_url = config_sharepoint_init(config_file=config_file)
     ctx=get_sharepoint_ctx(site_url=site_url,user_credentials=user_credentials)
-    package=download_package_from_sharepoint(ctx=ctx,file_url=file_url)
+    year=choose_release_year(ctx=ctx,file_url=file_url)
+    date=choose_release_date(ctx=ctx,file_url=file_url,release_year=year)
+    package=download_package_from_sharepoint(ctx=ctx,file_url=file_url+"/"+year+"/"+date)
     install_package(config_file=config_file,package_path=package)
     print("End Of Script!")
     
