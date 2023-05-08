@@ -1,4 +1,5 @@
 import sys
+import os
 import base64
 import yaml
 import requests
@@ -115,9 +116,8 @@ def choose_release_date(ctx=None, file_url="",release_year=""):
             print("Invalid Option!")
             continue
 
-def download_package_from_sharepoint(ctx=None,file_url=""):
+def download_package_from_sharepoint(ctx=None,file_url="",package=""):
     try:
-        package=choose_package_to_install(ctx=ctx,file_url=file_url)
         print("Downloading Package:  "+package+"....")
         with open(package, "wb") as local_file:
             if not file_url.endswith("/"):
@@ -332,6 +332,26 @@ def install_package(config_file="",package_path=""):
     except Exception as e:
         print("Exception in Install package: "+str(e))
         sys.exit(-1)
+
+def redownload_prompt(package=""):
+    try:
+        if os.path.exists(package):
+            download="false"
+            download_option=input("Already Downloaded! Do you want to redownload "+package+" (y/n): ")
+            while(download_option.strip()!="y" and download_option.strip()!="Y" and download_option.strip()!="n" and download_option.strip()!="N"):
+                print("Invalid Option!")
+                download_option=input("Do you want to redownload "+package+" (y/n): ")
+            if download_option=="y" or download_option=="Y":
+                download="true"
+            elif download_option=="n" or download_option=="N":
+                download="false"
+                print("redownload Cancelled!")
+            return download
+        else:
+            return "true"
+    except Exception as e:
+        print("Exception in Redownload package: "+str(e))
+        sys.exit(-1)
         
 def main():
     print("Connecting to Sharepoint....")
@@ -339,7 +359,10 @@ def main():
     ctx=get_sharepoint_ctx(site_url=site_url,user_credentials=user_credentials)
     year=choose_release_year(ctx=ctx,file_url=file_url)
     date=choose_release_date(ctx=ctx,file_url=file_url,release_year=year)
-    package=download_package_from_sharepoint(ctx=ctx,file_url=file_url+"/"+year+"/"+date)
+    package=choose_package_to_install(ctx=ctx,file_url=file_url+"/"+year+"/"+date)
+    redownload=redownload_prompt(package=package)
+    if redownload=="true":
+        package=download_package_from_sharepoint(ctx=ctx,file_url=file_url+"/"+year+"/"+date,package=package)
     install_package(config_file=config_file,package_path=package)
     print("End Of Script!")
     
