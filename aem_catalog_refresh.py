@@ -159,5 +159,7 @@ def main(config_file=""):
     environment=get_environment(config_file=config_file,env=env)
     mode=choose_refresh_method()
     refresh(config_file=config_file,environment=environment,mode=mode)
+    print("End Of Script!")
+    
     
 main(config_file=config_file)
